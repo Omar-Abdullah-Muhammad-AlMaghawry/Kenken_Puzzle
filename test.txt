@@ -1,0 +1,64 @@
+def gather(iterations, out):
+  
+            bt         = lambda ken: csp.backtracking_search(game_kenken)
+            bt_mrv     = lambda ken: csp.backtracking_search(game_kenken, select_unassigned_variable=csp.mrv)
+            fc         = lambda ken: csp.backtracking_search(game_kenken, inference=csp.forwardCheckingFn)
+            fc_mrv     = lambda ken: csp.backtracking_search(game_kenken, inference=csp.forwardCheckingFn, select_unassigned_variable=csp.mrv)
+            mac        = lambda ken: csp.backtracking_search(game_kenken, inference=csp.mac)
+            mconflicts = lambda ken: csp.min_conflicts(ken)
+
+            algorithms = {
+                "BT": bt,
+                "BT+MRV": bt_mrv,
+                "FC": fc,
+                "FC+MRV": fc_mrv,
+                "MAC": mac,
+                "MIN_CONFLICTS": mconflicts
+            }
+
+            with open(out, "w+") as file:
+
+                out = writer(file)
+
+
+                for name, algorithm in algorithms.items():
+                    for size in range(3, 4):
+                        checks, assignments, dt = (0, 0, 0)
+                        for iteration in range(1, iterations + 1):
+                        
+                            V=randomize_grid(size)
+                            lines =randomize_cages(V)
+                            print(lines)
+                            kenken=KenKen(size, lines)   
+                            game_kenken = csp.Constrain_Satsified_Problem(kenken.vars, kenken.domains, kenken.adjecent, kenken.constraint)
+                            assignment, data = benchmark(game_kenken, algorithm)
+
+                        print("algorithm =",  name, "size =", size, "iteration =", iteration, "result =", "Success" if assignment else "Failure", file=stderr)
+
+                        checks      += data[0] / iterations
+                        assignments += data[1] / iterations
+                        dt          += data[2] / iterations
+                            
+                        out.writerow([name, size, checks, assignments, dt])
+
+
+
+
+def benchmark(kenken, algorithm):
+        """
+        Used in order to benchmark the given algorithm in terms of
+          * The number of nodes it visits
+          * The number of constraint checks it performs
+          * The number of assignments it performs
+          * The completion time
+        """
+        kenken.checks = kenken.nassigns = 0
+
+        dt = time()
+
+        assignment = algorithm(kenken)
+
+        dt = time() - dt
+
+        return assignment, (kenken.checks, kenken.nassigns, dt)
+

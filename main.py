@@ -1,12 +1,15 @@
 from random import sample
+import string
 import sys
+from unittest import result
 from PyQt5 import QtGui, QtCore, QtWidgets
 import PyQt5
 from PyQt5.QtWidgets import QTableWidgetItem
 import numpy
 from tablewidget import Ui_MainWindow
 from randomize_grid import randomize_cages, randomize_grid
-
+import csp
+import kenken
 
 class Window(QtWidgets.QMainWindow) :
     def __init__(self):
@@ -20,6 +23,7 @@ class Window(QtWidgets.QMainWindow) :
         self.cages
         self.solved = False
         self.rarr
+        self.lines = []
 
     def loadProducts(self):
         self.solved = False
@@ -63,21 +67,69 @@ class Window(QtWidgets.QMainWindow) :
         self.solved = True
         for i in range(self.ui.n):
             for j in range(self.ui.n):
+                index = 'K' + str(i) + str(j)
+                val = solution[index]
+                # sys.stdout.write(str(sol[string]) + " ")
                 existing = self.ui.tableWidget.item(i, j).text()
-                self.ui.tableWidget.item(i, j).setText(existing + "\n" + str(solution[i][j]))
+                self.ui.tableWidget.item(i, j).setText(existing + "\n" + str(val))
 
+    def getLines(self):
+        for cage in self.cages:
+                var = cage[0]
+                op= cage[1]
+                val = cage[2]
+                strVar = str(var)
+                l = strVar.split()
+                varSt = ""
+                for l1 in l:
+                    varSt += l1 
+                # varSt.join(l)
+                # print(varSt)
+                self.lines.append( varSt + " "+ str(op) + " " + str(val) + "\n" )
+                # print(lines)  
     def algo_one(self):
         if(not self.solved):
-            self.fillTable(self.rarr)
+            size = self.ui.n
+            self.getLines()
+            # lines = lines[0:-1]
+            # print(lines)
+            kenken1 = kenken.KenKen(size, self.lines)
+
+            game_kenken1 = csp.Constrain_Satsified_Problem(kenken1.vars, kenken1.domains, kenken1.adjecent, kenken1.constraint)
+            kenken1.insertGame(game_kenken1)
+
+            resultDec = csp.backtracking_search(game_kenken1)
+           
+            self.fillTable(resultDec)
     
     def algo_two(self):
-        if(not self.solved):
-            self.fillTable(self.rarr)
+       if(not self.solved):
+            size = self.ui.n
+            self.getLines()
+            # lines = lines[0:-1]
+            # print(lines)
+            kenken1 = kenken.KenKen(size, self.lines)
 
+            game_kenken1 = csp.Constrain_Satsified_Problem(kenken1.vars, kenken1.domains, kenken1.adjecent, kenken1.constraint)
+            kenken1.insertGame(game_kenken1)
+
+            resultDec = csp.backtracking_search(game_kenken1,inference=csp.forwardCheckingFn)
+           
+            self.fillTable(resultDec)
     def algo_three(self):
-        if(not self.solved):
-            self.fillTable(self.rarr)
+       if(not self.solved):
+            size = self.ui.n
+            self.getLines()
+            # lines = lines[0:-1]
+            # print(lines)
+            kenken1 = kenken.KenKen(size, self.lines)
 
+            game_kenken1 = csp.Constrain_Satsified_Problem(kenken1.vars, kenken1.domains, kenken1.adjecent, kenken1.constraint)
+            kenken1.insertGame(game_kenken1)
+
+            resultDec = csp.backtracking_search(game_kenken1, inference=csp.mac)
+           
+            self.fillTable(resultDec)
 
 def create_app():
     app = QtWidgets.QApplication(sys.argv)

@@ -183,7 +183,7 @@ class KenKen():
 
             return constraintA and constraintB
         		
-  def constraint_op(self, variable, value, block_Num):
+    def constraint_op(self, variable, value, block_Num):
         if self.block_Op[block_Num] == "''":
             return value == self.block_Val[block_Num]
     
